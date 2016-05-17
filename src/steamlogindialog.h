@@ -21,6 +21,9 @@
 
 #include <QDialog>
 #include <QNetworkCookie>
+QT_BEGIN_NAMESPACE
+class QWebEngineCookieStore;
+QT_END_NAMESPACE
 
 namespace Ui {
 class SteamLoginDialog;
@@ -46,6 +49,12 @@ private:
     void SaveSteamCookie(QNetworkCookie);
     QNetworkCookie LoadSteamCookie();
 
+	QWebEngineCookieStore *cookie_store;
+	QVector<QNetworkCookie> m_cookies;
+	bool containsCookie(const QNetworkCookie &cookie);
+	void handleCookieAdded(const QNetworkCookie &cookie);
+	QString session_id;
+	bool gotcookie2, gotcookie3;
     std::string settings_path_;
 private slots:
     void OnLoadFinished();
