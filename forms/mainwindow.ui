@@ -252,6 +252,13 @@
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <widget class="QPushButton" name="itemTextToolTipCopyToClipboardButton">
+                   <property name="text">
+                    <string>Copy to Clipboard (as HTML)</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </widget>
                <widget class="QWidget" name="tab">

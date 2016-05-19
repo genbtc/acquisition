@@ -57,6 +57,7 @@
 #include "shop.h"
 #include "util.h"
 #include "verticalscrollarea.h"
+#include "geartypefilter.h"
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
 
@@ -413,8 +414,8 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
 bool MainWindow::eventFilter(QObject *o, QEvent *e) {
     if (o == tab_bar_ && e->type() == QEvent::MouseButtonPress) {
         QMouseEvent *mouse_event = static_cast<QMouseEvent *>(e);
-        if (mouse_event->button() == Qt::MidButton) {
-            // middle button pressed on a tab
+		if (mouse_event->button() == Qt::MidButton || mouse_event->button() == Qt::RightButton) {
+            // middle button pressed on a tab (OR RIGHT BUTTON! duh)
             int index = tab_bar_->tabAt(mouse_event->pos());
             // remove tab and Search if it's not "+"
             if (index >= 0 && index < tab_bar_->count() - 1) {
@@ -542,7 +543,9 @@ void MainWindow::InitializeSearchForm() {
     auto requirements_layout = new FlowLayout;
     auto misc_layout = new FlowLayout;
     auto misc_flags_layout = new FlowLayout;
-    auto mods_layout = new QHBoxLayout;
+	auto geartype_layout = new QHBoxLayout;
+	auto mods_layout = new QHBoxLayout;
+	
 
     AddSearchGroup(offense_layout, "Offense");
     AddSearchGroup(defense_layout, "Defense");
@@ -550,7 +553,8 @@ void MainWindow::InitializeSearchForm() {
     AddSearchGroup(requirements_layout, "Requirements");
     AddSearchGroup(misc_layout, "Misc");
     AddSearchGroup(misc_flags_layout);
-    AddSearchGroup(mods_layout, "Mods");
+	AddSearchGroup(geartype_layout, "GearType");
+	AddSearchGroup(mods_layout, "Mods");
 
     using move_only = std::unique_ptr<Filter>;
     move_only init[] = {
@@ -585,7 +589,8 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<MTXFilter>(misc_flags_layout, "", "MTX"),
         std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),
         std::make_unique<PricedFilter>(misc_flags_layout, "", "Priced", app_->buyout_manager()),
-        std::make_unique<ModsFilter>(mods_layout)
+		std::make_unique<GearTypeFilter>(geartype_layout),
+		std::make_unique<ModsFilter>(mods_layout)		
     };
     filters_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));
 }
@@ -829,6 +834,15 @@ void MainWindow::on_uploadTooltipButton_clicked() {
     QNetworkReply *reply = network_manager_->post(request, data);
     new QReplyTimeout(reply, kImgurUploadTimeout);
     connect(reply, &QNetworkReply::finished, this, &MainWindow::OnUploadFinished);
+}
+
+void MainWindow::on_itemTextToolTipCopyToClipboardButton_clicked(){
+	//Copy HTMLtext to Clipboard.
+	QString headbkgnd = "<style>body{ background-color: black; color: #7f7f7f; padding: 3px; }</style>";
+	QString info = ui->itemTextTooltip->text();
+
+	QClipboard *clipboard = QApplication::clipboard();
+	clipboard->setText(headbkgnd+info);
 }
 
 void MainWindow::OnUploadFinished() {

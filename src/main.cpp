@@ -38,6 +38,7 @@
 #include "version.h"
 #include "../test/testmain.h"
 #include "tabcache.h"
+#include "geartypelist.h"
 
 #ifdef CRASHRPT
 #include "CrashRpt.h"
@@ -76,7 +77,7 @@ int main(int argc, char *argv[])
     CrAutoInstallHelper cr_install_helper(&info);
 #endif
 
-    InitModlist();
+	InitModlist(); InitGearlist();
 
     QApplication a(argc, argv);
     Filesystem::Init();

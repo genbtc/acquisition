@@ -118,6 +118,7 @@ private slots:
     void on_actionList_currency_triggered();
     void on_actionExport_currency_triggered();
     void on_uploadTooltipButton_clicked();
+	void on_itemTextToolTipCopyToClipboardButton_clicked();
 
 private:
     void ModelViewRefresh();

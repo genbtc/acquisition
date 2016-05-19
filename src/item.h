@@ -58,6 +58,7 @@ struct ItemSocket {
 
 typedef std::vector<std::string> ItemMods;
 typedef std::unordered_map<std::string, double> ModTable;
+typedef std::unordered_map<std::string, double> GearTable;
 
 class Item {
 public:
@@ -94,6 +95,7 @@ public:
     int count() const { return count_; };
     bool has_mtx() const { return has_mtx_; }
     const ModTable &mod_table() const { return mod_table_; }
+	const GearTable &gear_table() const { return gear_table_; }
     int ilvl() const { return ilvl_; }
     bool operator<(const Item &other) const;
 
@@ -129,6 +131,7 @@ private:
     std::vector<ItemSocket> text_sockets_;
     std::string note_;
     ModTable mod_table_;
+	GearTable gear_table_;
     std::string uid_;
 };
 

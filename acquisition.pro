@@ -31,6 +31,8 @@ SOURCES += \
     src/filesystem.cpp \
     src/filters.cpp \
     src/flowlayout.cpp \
+    src/geartypefilter.cpp \
+    src/geartypelist.cpp \
     src/imagecache.cpp \
     src/item.cpp \
     src/itemlocation.cpp \
@@ -75,6 +77,8 @@ HEADERS += \
     src/filesystem.h \
     src/filters.h \
     src/flowlayout.h \
+    src/geartypefilter.h \
+    src/geartypelist.h \    
     src/imagecache.h \
     src/item.h \
     src/itemconstants.h \
