@@ -1,3 +1,4 @@
+#pragma region Header License
 /*
     Copyright 2014 Ilya Zhuravlev
 
@@ -16,51 +17,49 @@
     You should have received a copy of the GNU General Public License
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma endregion
+
 
 #include "geartypefilter.h"
+#include "geartypelist.h"
 
 #include <QComboBox>
 #include <QLineEdit>
 #include <QObject>
 #include <QPushButton>
 #include "QsLog.h"
-
-#include "geartypelist.h"
 #include "porting.h"
 
+
+#pragma region Front End Heavy Lifting - UI
+
+//Viewmodel constructor
 SelectedGearType::SelectedGearType(const std::string &name) :
     data_(name),
     Gear_select_(std::make_unique<QComboBox>()),
     delete_button_(std::make_unique<QPushButton>("x"))
 {
     Gear_select_->setEditable(true);
-	Gear_select_->addItems(gear_string_list);
+    Gear_select_->addItems(gear_string_list);
     Gear_completer_ = new QCompleter(gear_string_list);
     Gear_completer_->setCompletionMode(QCompleter::PopupCompletion);
     Gear_completer_->setFilterMode(Qt::MatchContains);
     Gear_completer_->setCaseSensitivity(Qt::CaseInsensitive);
     Gear_select_->setCompleter(Gear_completer_);
-
     Gear_select_->setCurrentIndex(Gear_select_->findText(name.c_str()));
-
 }
 
+//text updater
 void SelectedGearType::Update() {
-    data_.Gear = Gear_select_->currentText().toStdString();
+    data_.Gearname = Gear_select_->currentText().toStdString();
 }
 
-enum LayoutColumn {
-    kDeleteButton,
-    kColumnCount
-};
-
-void SelectedGearType::AddToLayout(QGridLayout *layout, int index) {
-    int combobox_pos = index * 2;
-    int minmax_pos = index * 2 + 1;
-    layout->addWidget(Gear_select_.get(), combobox_pos, 0, 1, LayoutColumn::kColumnCount);
-    layout->addWidget(delete_button_.get(), minmax_pos, LayoutColumn::kDeleteButton);
+//insert into UI
+void SelectedGearType::AddToLayout(QGridLayout *layout, int index) {;
+    layout->addWidget(Gear_select_.get(), index, 0);
+    layout->addWidget(delete_button_.get(), index, 1);
 }
-
+//event handler:
 void SelectedGearType::CreateSignalMappings(QSignalMapper *signal_mapper, int index) {
     QObject::connect(Gear_select_.get(), SIGNAL(currentIndexChanged(int)), signal_mapper, SLOT(map()));
     QObject::connect(delete_button_.get(), SIGNAL(clicked()), signal_mapper, SLOT(map()));
@@ -69,50 +68,22 @@ void SelectedGearType::CreateSignalMappings(QSignalMapper *signal_mapper, int in
     // hack to distinguish update and delete, delete event has negative (id + 1)
     signal_mapper->setMapping(delete_button_.get(), -index - 1);
 }
-
+//event handler:
 void SelectedGearType::RemoveSignalMappings(QSignalMapper *signal_mapper) {
     signal_mapper->removeMappings(Gear_select_.get());
     signal_mapper->removeMappings(delete_button_.get());
 }
 
+//Model Constructor
 GearTypeFilter::GearTypeFilter(QLayout *parent) :
-    signal_handler_(*this)
+signal_handler_(*this)
 {
     Initialize(parent);
-    QObject::connect(&signal_handler_, SIGNAL(SearchFormChanged()), 
+    QObject::connect(&signal_handler_, SIGNAL(SearchFormChanged()),
         parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
 }
 
-void GearTypeFilter::FromForm(FilterData *data) {
-	auto &geartype_data = data->geartype_data;
-	geartype_data.clear();
-	for (auto &Gear : geartypes_)
-		geartype_data.push_back(Gear.data());
-}
-
-void GearTypeFilter::ToForm(FilterData *data) {
-    Clear();
-	for (auto &Gear : data->geartype_data)
-		geartypes_.push_back(SelectedGearType(Gear.Gear));
-    Refill();
-}
-
-void GearTypeFilter::ResetForm() {
-    Clear();
-    Refill();
-}
-
-bool GearTypeFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
-	for (auto &Gear : data->geartype_data) {
-        if (Gear.Gear.empty())
-            continue;
-        const GearTable &Gear_table = item->gear_table();
-        if (!Gear_table.count(Gear.Gear))
-            return false;
-    }
-    return true;
-}
-
+//Model initializer
 void GearTypeFilter::Initialize(QLayout *parent) {
     layout_ = std::make_unique<QGridLayout>();
     add_button_ = std::make_unique<QPushButton>("Add Gear");
@@ -126,25 +97,63 @@ void GearTypeFilter::Initialize(QLayout *parent) {
 
     QObject::connect(&signal_mapper_, SIGNAL(mapped(int)), &signal_handler_, SLOT(OnGearChanged(int)));
 }
+#pragma endregion
+
+
+#pragma region Data Filtering
+//*1) FromForm: provided with a FilterData fill it with data from form
+void GearTypeFilter::FromForm(FilterData *data) {
+    auto &geartype_data = data->geartype_data;
+    geartype_data.clear();
+    for (auto &Gear : current_gear_filters_)
+        geartype_data.push_back(Gear.data());
+}
+//*2) ToForm: provided with a FilterData fill form with data from it
+void GearTypeFilter::ToForm(FilterData *data) {
+    Clear();
+    for (auto &Gear : data->geartype_data)
+        current_gear_filters_.push_back(SelectedGearType(Gear.Gearname));
+    Refill();
+}
+
+//*3) Matches: check if an item matches the filter provided with FilterData
+bool GearTypeFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    for (auto &Gear : data->geartype_data) {
+        if (Gear.Gearname.empty())
+            return true;
+        for (auto props : item->text_properties()){
+            if (props.name.find(Gear.Gearname) != std::string::npos)
+                return true;
+        }
+        return false;
+    }
+    return true;
+}
+#pragma endregion
+
+
+#pragma region Member Functions Back End - DataStructure
+void GearTypeFilter::ResetForm() {
+    Clear();
+    Refill();
+}
 
 void GearTypeFilter::AddGear() {
-    SelectedGearType Gear("");
-	geartypes_.push_back(std::move(Gear));
+    current_gear_filters_.push_back(std::move(SelectedGearType("")));
     Refill();
 }
 
 void GearTypeFilter::UpdateGear(int id) {
-	geartypes_[id].Update();
+    current_gear_filters_[id].Update();
 }
 
 void GearTypeFilter::DeleteGear(int id) {
-	geartypes_.erase(geartypes_.begin() + id);
-
+    current_gear_filters_.erase(current_gear_filters_.begin() + id);
     Refill();
 }
 
 void GearTypeFilter::ClearSignalMapper() {
-	for (auto &Gear : geartypes_) {
+    for (auto &Gear : current_gear_filters_) {
         Gear.RemoveSignalMappings(&signal_mapper_);
     }
 }
@@ -157,7 +166,7 @@ void GearTypeFilter::ClearLayout() {
 void GearTypeFilter::Clear() {
     ClearSignalMapper();
     ClearLayout();
-	geartypes_.clear();
+    current_gear_filters_.clear();
 }
 
 void GearTypeFilter::Refill() {
@@ -165,16 +174,20 @@ void GearTypeFilter::Refill() {
     ClearLayout();
 
     int i = 0;
-	for (auto &Gear : geartypes_) {
+    for (auto &Gear : current_gear_filters_) {
         Gear.AddToLayout(layout_.get(), i);
         Gear.CreateSignalMappings(&signal_mapper_, i);
-
         ++i;
     }
-
-	layout_->addWidget(add_button_.get(), 2 * geartypes_.size(), 0, 1, LayoutColumn::kColumnCount);
+    layout_->addWidget(add_button_.get(), 2 * current_gear_filters_.size(), 0, 2 * current_gear_filters_.size(), 2);
+    //the code says addWidget(row,column,rowspan,columnspan) HOWEVER, this was not the case.
+    // in actuality it was addWidget(fromRow,fromColumn,toRow,toColumn)
+    // 2 * current_gear_filters_.size() means 2 rows for however many filters are added)
 }
+#pragma endregion
 
+
+#pragma region Signal handlers
 void GearTypeFilterSignalHandler::OnAddButtonClicked() {
     parent_.AddGear();
 }
@@ -186,3 +199,5 @@ void GearTypeFilterSignalHandler::OnGearChanged(int id) {
         parent_.UpdateGear(id - 1);
     emit SearchFormChanged();
 }
+
+#pragma endregion

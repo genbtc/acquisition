@@ -37,31 +37,35 @@ QStringList gear_string_list;
 // Both implicit and explicit fields are considered.
 // This is pretty much the same list as poe.trade uses
 const std::vector<std::vector<std::string>> gear_simple_sum = {
+
+		{ "Axe" },
+		{ "Bow" },	//also finds support gems for bow
+		{ "Claw" },		
+		{ "Dagger" },
+		{ "Mace" },
+		{ "Quiver" },
+		{ "Staff" },
+		{ "Sword" },
+		{ "Wand" },
+		{ "One Handed" },
+		{ "Two Handed" },
+		{ "Map" }	//already have a way to search for map (just do maptier minlvl 1)
+		/*
+		{ "Sceptre" },  //all sceptres are actually maces with different %ElementalDmg implicits. typeline named: Sceptre,Fetish,Sekhem
+		{ "Shield" },	//bad - matches items giving energyshield. better to look for "Chance to Block", or typline named: Shield, Spiked bundle, Buckler
+		{ "Flask" },
+		{ "QuestItem" },
+		{ "DivinationCard" },
+		{ "Jewel" },
+		{ "Talisman" },
 		{ "Ring" },
 		{ "Amulet" },
 		{ "Helmet" },
 		{ "Chest" },
 		{ "Belt" },
 		{ "Gloves" },
-		{ "Boots" },
-		{ "Axe" },
-		{ "Claw" },
-		{ "Bow" },
-		{ "Dagger" },
-		{ "Mace" },
-		{ "Quiver" },
-		{ "Sceptre" },
-		{ "Staff" },
-		{ "Sword" },
-		{ "Shield" },
-		{ "Wand" },
-		{ "Flask" },
-		{ "Map" },
-		{ "QuestItem" },
-		{ "DivinationCard" },
-		{ "Jewel" },
-		{ "Talisman" },
-		{ "Unknown" }
+		{ "Boots" }
+*/
 };
 
 std::vector<std::unique_ptr<SumGearGenerator>> gear_generators;
@@ -82,6 +86,7 @@ SumGearGenerator::SumGearGenerator(const std::string &name, const std::vector<st
 {}
 
 bool SumGearGenerator::Match(const char *gear, double *output) {
+/*
     bool found = false;
     *output = 0.0;
     for (auto &match : matches_) {
@@ -91,12 +96,14 @@ bool SumGearGenerator::Match(const char *gear, double *output) {
             found = true;
         }
     }
-
     return found;
+*/
+	return false;
 }
 
 void SumGearGenerator::Generate(const rapidjson::Value &json, GearTable *output) {
-    bool gear_present = false;
+/*
+	bool gear_present = false;
     double sum = 0;
 
     for (auto &mod : json["properties"]) {
@@ -109,4 +116,5 @@ void SumGearGenerator::Generate(const rapidjson::Value &json, GearTable *output)
 
 	if (gear_present)
         (*output)[name_] = sum;
+*/
 }

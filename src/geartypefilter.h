@@ -30,6 +30,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 
+
 class SelectedGearType {
 public:
     SelectedGearType(const std::string &name);
@@ -51,9 +52,9 @@ public:
     void AddToLayout(QGridLayout *layout, int index);
     void CreateSignalMappings(QSignalMapper *signal_mapper, int index);
     void RemoveSignalMappings(QSignalMapper *signal_mapper);
-    const GearTypeFilterData &data() const { return data_; }
+    const NamedGearFilterUIObj &data() const { return data_; }
 private:
-    GearTypeFilterData data_;
+    NamedGearFilterUIObj data_;
     std::unique_ptr<QComboBox> Gear_select_;
     QCompleter *Gear_completer_;
     std::unique_ptr<QPushButton> delete_button_;
@@ -96,7 +97,7 @@ private:
 
     std::unique_ptr<QGridLayout> layout_;
     std::unique_ptr<QPushButton> add_button_;
-    std::vector<SelectedGearType> geartypes_;
+    std::vector<SelectedGearType> current_gear_filters_;
     GearTypeFilterSignalHandler signal_handler_;
     QSignalMapper signal_mapper_;
 };

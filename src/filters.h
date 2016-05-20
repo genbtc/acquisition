@@ -61,14 +61,10 @@ struct ModFilterData {
     bool min_filled, max_filled;
 };
 
-struct GearTypeFilterData {
-	GearTypeFilterData(const std::string &gear_) :
-		Gear(gear_)
-	{}
-
-	std::string Gear;
+struct NamedGearFilterUIObj {
+	NamedGearFilterUIObj(const std::string &gearname_) : Gearname(gearname_) { }
+	std::string Gearname;
 };
-
 /*
  * This is used to store filter data in Search,
  * i.e. min-max values that the user has specified.
@@ -89,7 +85,7 @@ public:
     bool r_filled, g_filled, b_filled;
     bool checked;
     std::vector<ModFilterData> mod_data;
-	std::vector<GearTypeFilterData> geartype_data;
+	std::vector<NamedGearFilterUIObj> geartype_data;
 private:
     Filter *filter_;
 };
